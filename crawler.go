@@ -13,7 +13,7 @@ import (
 func getTitle(t html.Token) (ok bool, alt string) {
 
   for _, img := range t.Attr {
-    if img.key == "alt" {
+    if img.Key == "alt" {
       alt = img.Val
       ok = true
     }
