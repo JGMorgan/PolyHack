@@ -29,18 +29,23 @@ func main() {
   bytes, _ := ioutil.ReadAll(resp.Body)
   modified_string := string(bytes)
 for i := 0; i < 61; i++ {
-  if strings.ContainsAny(modified_string,"<p>") == false {
-    break
-  }
+    if strings.ContainsAny(modified_string,"<p>") == false {
+      break
+    }
 
     p_string := GetStringInBetween(modified_string,"<p>","</p>")
 
-    fmt.Println(p_string)
+    //TODO: Store titles into array (slices)
+
+//    fmt.Println(p_string)
+
+    titles := [i]string{p_string};
 
     tag := strings.Split(modified_string, "</p>")
     modified_string = strings.Trim(modified_string,tag[0])
   }
 //  fmt.Println("HTML:\n\n", modified_string)
 
+  fmt.Println(titles)
   resp.Body.Close()
 }
