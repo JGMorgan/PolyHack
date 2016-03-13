@@ -1,177 +1,111 @@
-//TODO: webcrawler code
-package main
+package crawler
+
 import (
-  "net/http"
-  "golang.org/x/net/html"
-  "io/ioutil"
-  "fmt"
+    "time"
+    "math/rand"
+    "fmt"
+    "golang.org/x/net/html"
+    "net/http"
+    "strings"
+)
 
-  "bufio"
-//  "os"
-
-  "strings"
-  )
-
-// Get Tag Attributes (Image Title, Description)
-func getTitle(t html.Token) (ok bool, alt string) {
-
-  for _, img := range t.Attr {
-    if img.Key == "alt" {
-      alt = img.Val
-      ok = true
+// Helper function to pull the href attribute from a Token
+func getHref(t html.Token) (ok bool, href string) {
+    // Iterate over all of the Token's attributes until we find an "href"
+    for _, a := range t.Attr {
+        if a.Key == "id" {
+            href = a.Val
+            ok = true
+        }
     }
-  }
 
-  return
-}
-
-
-func main() {
-  //
-  GetSite()
-  // foundUrls := make(map[string]bool)
-  // seedUrls := os.Args[1:]
-  //
-  // // Channels
-  // chUrls := make(chan string)
-  // chFinished := make(chan bool)
-  //
-  // // Kick off the crawl process (concurrently)
-  // for _, url := range seedUrls {
-  //     go crawl(url, chUrls, chFinished)
-  // }
-  //
-  // // Subscribe to both channels
-  // for c := 0; c < len(seedUrls); {
-  //     select {
-  //     case url := <-chUrls:
-  //         foundUrls[url] = true
-  //     case <-chFinished:
-  //         c++
-  //     }
-  // }
-
-  // We're done! Print the results...
-
-  // fmt.Println("\nFound", len(foundUrls), "unique urls:\n")
-  //
-  // for url, _ := range foundUrls {
-  //     fmt.Println(" - " + url)
-  // }
-  //
-  // close(chUrls)
-}
-
-//Crawl Function
-func crawl ( url string, ch chan string, chFinished chan bool ) {
-  resp, err := http.Get(url)
-
-  defer func() {
-    //Notifies that we are finished after function
-    chFinished <- true
-  }()
-
-  if err != nil {
-    fmt.Println("ERROR: Failed to crawl \"" + url + "\"")
+    // "bare" return will return the variables (ok, href) as defined in
+    // the function definition
     return
-  }
+}
 
-  b := resp.Body
-  defer b.Close() // close Body when the function returns
+// Extract all http** links from a given webpage
+func crawl(url string, ch chan string, chFinished chan bool) {
+    resp, err := http.Get(url)
 
-  // Parse HTML (Find img anchor tag)
-  z := html.NewTokenizer(b)
-  for {
-    tt := z.Next()
-    switch {
-    case tt == html.ErrorToken:
-      // End of the document, we're done
-      return
-    case tt == html.StartTagToken:
-      t := z.Token()
+    defer func() {
+        // Notify that we're done after this function
+        chFinished <- true
+    }()
 
-      isAnchor := t.Data == "img"
-
-      if !isAnchor {
-        continue
-      }
-
-      //Extract the 'alt' value, if found
-      ok, url := getTitle(t)
-      if !ok {
-        continue
-      }
-
-      //Check URL for 'http' at beginning
-      hasProto := strings.Index(url, "http") == 0
-      if hasProto {
-        ch <- url
-      }
+    if err != nil {
+        fmt.Println("ERROR: Failed to crawl \"" + url + "\"")
+        return
     }
-  }
+
+    b := resp.Body
+    defer b.Close() // close Body when the function returns
+
+    z := html.NewTokenizer(b)
+
+    for {
+        tt := z.Next()
+
+        switch {
+        case tt == html.ErrorToken:
+            // End of the document, we're done
+            return
+        case tt == html.StartTagToken:
+            t := z.Token()
+
+            // Check if the token is an <a> tag
+            isAnchor := t.Data == "div"
+            if !isAnchor {
+                continue
+            }
+
+            // Extract the href value, if there is one
+            ok, url := getHref(t)
+            if !ok {
+                continue
+            }
+
+            // Make sure the url begines in http**
+      //      len := utf8.RuneCountInString(url)
+            hasProto := strings.Index(url, "") == 0
+            if hasProto && (len([]rune(url)) == 7) && strings.Compare("section",url) != 0 {
+                ch <- url
+            }
+        }
+    }
 }
 
-// func main() {
-//   //
-//   foundUrls := make(map[string]bool)
-//   seedUrls := os.Args[1:]
-//
-//   // Channels
-//   chUrls := make(chan string)
-//   chFinished := make(chan bool)
-//
-//   // Kick off the crawl process (concurrently)
-//   for _, url := range seedUrls {
-//       go crawl(url, chUrls, chFinished)
-//   }
-//
-//   // Subscribe to both channels
-//   for c := 0; c < len(seedUrls); {
-//       select {
-//       case url := <-chUrls:
-//           foundUrls[url] = true
-//       case <-chFinished:
-//           c++
-//       }
-//   }
-//
-//   // We're done! Print the results...
-//   fmt.Println("\nFound", len(foundUrls), "unique urls:\n")
-//
-//   for url, _ := range foundUrls {
-//
-//       fmt.Println(" - " + url)
-//   }
-//
-//   close(chUrls)
-// }
+func initCrawl() {
+    r := rand.New(rand.NewSource(time.Now().UnixNano()))
+    foundUrls := make(map[string]bool)
+    chUrls := make(chan string)
+    chFinished := make(chan bool)
 
+    go crawl("http://imgur.com/r/dankmemes", chUrls, chFinished)
 
-func main() {
-GetSite()
-}
+    // Subscribe to both channels
+    for allFound := false; !allFound; {
+        select {
+        case url := <-chUrls:
+            foundUrls[url] = true
+        case <-chFinished:
+            allFound = true;
+        }
+    }
+    var allImages[] string
+    for url, _ := range foundUrls {
+    //    fmt.Println(" - " + url)
+        imagesrc := "http://i.imgur.com/"+url+".jpg"
+        allImages = append(allImages, imagesrc)
+        fmt.Println(imagesrc)
+        //TODO: Store image in an array with title?
+    //    addImageStore(imagesrc, title)
+    //TODO: Find <P> tag for each div, and pull title
 
-//Sample
-func GetSite() {
-  resp, _ := http.Get("http://imgur.com/r/dankmemes");
-  //bytes, _ := ioutil.ReadAll(resp.Img)
+    //TODO: Match Meme with closest keywords to title (ContainsAny?)
 
-  // for info, _ := range bytes {
-  //   if strings.Contains(string(bytes), "<img") {
-  //     fmt.Println(" - ", info)
-  //   }
-  // }
-  // fmt.Println("HTML:\n\n", string(bytes))
-  //
-  // resp.Body.Close()
+    }
 
-  body, err := ioutil.ReadAll(resp.Body)
-  if err != nil {
-      // err
-  }
-
-  r, err := bufio.NewReader(bytes.NewReader(body), resp.ContentLength)
-  if err != nil {
-      // err
-  }
+    close(chUrls)
+    return allImages[r.Int()%60]
 }

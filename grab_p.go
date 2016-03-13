@@ -5,7 +5,7 @@ import (
 //  "golang.org/x/net/html"
   "io/ioutil"
   "fmt"
-  "bufio"
+  //"bufio"
   "strings"
   )
 
@@ -26,11 +26,17 @@ import (
 
 func main() {
   resp, _ := http.Get("http://imgur.com/r/dankmemes")
-  bytes, _ := bufio.ReadLine(resp.Body)
+  bytes, _ := ioutil.ReadAll(resp.Body)
+  allHtml := strings.Split(string(bytes), "<p>")
+  for i:=0; i<60; i++{
+    for j:=0; j<10; j++{
+      fmt.Print(allHtml[i][j])
+    }
+    fmt.Println("")
+  }
+  //p_string := GetStringInBetween(string(bytes),"<p>","</p>")
 
-  p_string := GetStringInBetween(string(bytes),"<p>","</p>")
-
-  fmt.Println(p_string)
+  //fmt.Println(p_string)
 //  fmt.Println("HTML:\n\n", string(bytes))
 
   resp.Body.Close()
