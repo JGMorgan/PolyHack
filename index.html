@@ -2,10 +2,10 @@
 <head>
   <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
 </head>
-<body ng-controller="chatController">
+<body ng-controller="chatController" width="50%" align="left">
   <p>
     Username: <input type="text" placeholder="Username" ng-model="usr">
-    <button type="button" class="btn btn-primary-outline" ng-click="setUsrName()">Submit</button>
+    <button type="button" class="btn btn-primary-outline" ng-left"setUsrName()">Submit</button>
   </p>
   <ul>
     <li ng-repeat="m in messages track by $index">

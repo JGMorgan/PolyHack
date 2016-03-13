@@ -1,10 +1,11 @@
-package main
+package crawler
 
 import (
+    "time"
+    "math/rand"
     "fmt"
     "golang.org/x/net/html"
     "net/http"
-    "os"
     "strings"
 )
 
@@ -23,6 +24,7 @@ func getHref(t html.Token) (ok bool, href string) {
     return
 }
 
+<<<<<<< HEAD:crawler.go
 // Extract all http** links from a given webpage
 func crawl(url string, ch chan string, chFinished chan bool) {
     resp, err := http.Get(url)
@@ -31,6 +33,11 @@ func crawl(url string, ch chan string, chFinished chan bool) {
         // Notify that we're done after this function
         chFinished <- true
     }()
+=======
+//Crawl Function
+func crawl ( url string, ch chan string, chFinished chan bool ) {
+  resp, err := http.Get(url)
+>>>>>>> ce80c1cc2682d61288488d3b9b88053b16d8d977:old/crawler.go
 
     if err != nil {
         fmt.Println("ERROR: Failed to crawl \"" + url + "\"")
@@ -53,7 +60,7 @@ func crawl(url string, ch chan string, chFinished chan bool) {
             t := z.Token()
 
             // Check if the token is an <a> tag
-            isAnchor := t.Data == "p"
+            isAnchor := t.Data == "div"
             if !isAnchor {
                 continue
             }
@@ -67,44 +74,36 @@ func crawl(url string, ch chan string, chFinished chan bool) {
             // Make sure the url begines in http**
       //      len := utf8.RuneCountInString(url)
             hasProto := strings.Index(url, "") == 0
-            if hasProto && (len([]rune(url)) == 7) && strings.Compare("hover",url) == 0 {
+            if hasProto && (len([]rune(url)) == 7) && strings.Compare("section",url) != 0 {
                 ch <- url
             }
         }
     }
 }
 
-func main() {
+func initCrawl() {
+    r := rand.New(rand.NewSource(time.Now().UnixNano()))
     foundUrls := make(map[string]bool)
-    seedUrls := os.Args[1:]
-
-    // Channels
     chUrls := make(chan string)
     chFinished := make(chan bool)
 
-    // Kick off the crawl process (concurrently)
-    for _, url := range seedUrls {
-        go crawl(url, chUrls, chFinished)
-    }
+    go crawl("http://imgur.com/r/dankmemes", chUrls, chFinished)
 
     // Subscribe to both channels
-    for c := 0; c < len(seedUrls); {
+    for allFound := false; !allFound; {
         select {
         case url := <-chUrls:
             foundUrls[url] = true
         case <-chFinished:
-            c++
+            allFound = true;
         }
     }
-
-    // We're done! Print the results...
-
-    fmt.Println("\nFound", len(foundUrls), "unique urls:\n")
-
+    var allImages[] string
     for url, _ := range foundUrls {
     //    fmt.Println(" - " + url)
-        imagetitle := "Title - "+url
-        fmt.Println(imagetitle)
+        imagesrc := "http://i.imgur.com/"+url+".jpg"
+        allImages = append(allImages, imagesrc)
+        fmt.Println(imagesrc)
         //TODO: Store image in an array with title?
     //    addImageStore(imagesrc, title)
     //TODO: Find <P> tag for each div, and pull title
@@ -114,4 +113,5 @@ func main() {
     }
 
     close(chUrls)
+    return allImages[r.Int()%60]
 }

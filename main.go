@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"io/ioutil"
 	"net/http"
 	"github.com/gorilla/websocket"
 )
@@ -54,7 +55,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.Println(string(msg))
-		imgUrl := initCrawl()
+		//DODO -- Go to InitTitle, from there we check the text and load the image.
+		imgUrl := initGetTitle(string(msg))
 		sendAll([]byte(imgUrl))
 	}
 }
@@ -134,8 +136,7 @@ func crawl(url string, ch chan string, chFinished chan bool) {
     }
 }
 
-func initCrawl() string{
-    r := rand.New(rand.NewSource(time.Now().UnixNano()))
+func initCrawl(index int) string{
     foundUrls := make(map[string]bool)
     chUrls := make(chan string)
     chFinished := make(chan bool)
@@ -157,14 +158,68 @@ func initCrawl() string{
         imagesrc := "http://i.imgur.com/"+url+".jpg"
         allImages = append(allImages, imagesrc)
         fmt.Println(imagesrc)
-        //TODO: Store image in an array with title?
-    //    addImageStore(imagesrc, title)
-    //TODO: Find <P> tag for each div, and pull title
-
-    //TODO: Match Meme with closest keywords to title (ContainsAny?)
 
     }
 
     close(chUrls)
-    return allImages[r.Int()%60]
+    return allImages[index]
+}
+
+//Gets title using index (0-60), same position as images array
+func initGetTitle(s_input string) string {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+  resp, _ := http.Get("http://imgur.com/r/dankmemes")
+  bytes, _ := ioutil.ReadAll(resp.Body)
+  modified_string := string(bytes)
+
+//All titles array
+  var allTitles[] string
+
+for i := 0; i < 61; i++ {
+    if strings.ContainsAny(modified_string,"<p>") == false {
+      break
+    }
+
+    p_string := GetStringInBetween(modified_string,"<p>","</p>")
+
+    //Store titles into array (slices) -- Removes invalid first <p>, index should match
+    if strings.Contains(p_string,"Optimizing your large GIFs...") == false {
+      allTitles = append(allTitles, p_string)
+    }
+
+    tag := strings.Split(modified_string, "</p>")
+    modified_string = strings.Trim(modified_string,tag[0])
+  }
+
+  //Check if entered text ContainsAny any element found in array.
+  for i := 0; i < len(allTitles); i++ {
+    if strings.ContainsAny(allTitles[i], s_input) == true {
+
+			//Crawl images after check
+			return initCrawl(i)
+      break
+    }
+  }
+
+  resp.Body.Close()
+
+	//If nothing found, return rand
+	return allTitles[r.Int()%60]
+}
+
+//Does what it is titled.
+func GetStringInBetween(content, start, end string) (result string) {
+	if content != "" && start != "" && end != "" {
+		r := strings.Split(content, start)
+
+		if r[1] != "" {
+			r = strings.Split(r[1], end)
+		}
+
+		result = r[0]
+		return
+	} else {
+		return
+	}
 }
