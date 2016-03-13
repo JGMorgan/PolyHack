@@ -9,7 +9,7 @@
   </p>
   <ul>
     <li ng-repeat="m in messages track by $index">
-      {{m}}<img src="http://i.imgur.com/nVVrQ7q.jpg" height="300" width="300">
+      <img src={{m}} height="300" width="300">
     </li>
   </ul>
   <input type="text" placeholder="type here" ng-model="message">

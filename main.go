@@ -2,9 +2,14 @@
 package main
 
 import (
+	// "time"
+	// "math/rand"
+	"golang.org/x/net/html"
+	"strings"
 	"flag"
 	"fmt"
 	"log"
+	"io/ioutil"
 	"net/http"
 	"github.com/gorilla/websocket"
 )
@@ -50,7 +55,9 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.Println(string(msg))
-		sendAll(msg)
+		//DODO -- Go to InitTitle, from there we check the text and load the image.
+		imgUrl := initGetTitle(string(msg))
+		sendAll([]byte(imgUrl))
 	}
 }
 
@@ -61,5 +68,157 @@ func sendAll(message []byte){
 			delete(connections, conn)
 			conn.Close()
 		}
+	}
+}
+
+func getHref(t html.Token) (ok bool, href string) {
+    // Iterate over all of the Token's attributes until we find an "href"
+    for _, a := range t.Attr {
+        if a.Key == "id" {
+            href = a.Val
+            ok = true
+        }
+    }
+
+    // "bare" return will return the variables (ok, href) as defined in
+    // the function definition
+    return
+}
+
+// Extract all http** links from a given webpage
+func crawl(url string, ch chan string, chFinished chan bool) {
+    resp, err := http.Get(url)
+
+    defer func() {
+        // Notify that we're done after this function
+        chFinished <- true
+    }()
+
+    if err != nil {
+        fmt.Println("ERROR: Failed to crawl \"" + url + "\"")
+        return
+    }
+
+    b := resp.Body
+    defer b.Close() // close Body when the function returns
+
+    z := html.NewTokenizer(b)
+
+    for {
+        tt := z.Next()
+
+        switch {
+        case tt == html.ErrorToken:
+            // End of the document, we're done
+            return
+        case tt == html.StartTagToken:
+            t := z.Token()
+
+            // Check if the token is an <a> tag
+            isAnchor := t.Data == "div"
+            if !isAnchor {
+                continue
+            }
+
+            // Extract the href value, if there is one
+            ok, url := getHref(t)
+            if !ok {
+                continue
+            }
+
+            // Make sure the url begines in http**
+      //      len := utf8.RuneCountInString(url)
+            hasProto := strings.Index(url, "") == 0
+            if hasProto && (len([]rune(url)) == 7) && strings.Compare("section",url) != 0 {
+                ch <- url
+            }
+        }
+    }
+}
+
+func initCrawl(index int) string{
+		//Eh.. we don't really need the rand
+    //r := rand.New(rand.NewSource(time.Now().UnixNano()))
+    foundUrls := make(map[string]bool)
+    chUrls := make(chan string)
+    chFinished := make(chan bool)
+
+    go crawl("http://imgur.com/r/dankmemes", chUrls, chFinished)
+
+    // Subscribe to both channels
+    for allFound := false; !allFound; {
+        select {
+        case url := <-chUrls:
+            foundUrls[url] = true
+        case <-chFinished:
+            allFound = true;
+        }
+    }
+    var allImages[] string
+    for url, _ := range foundUrls {
+    //    fmt.Println(" - " + url)
+        imagesrc := "http://i.imgur.com/"+url+".jpg"
+        allImages = append(allImages, imagesrc)
+        fmt.Println(imagesrc)
+    }
+
+    close(chUrls)
+    return allImages[index]
+}
+
+//Gets title using index (0-60), same position as images array
+func initGetTitle(s_input string) string {
+  resp, _ := http.Get("http://imgur.com/r/dankmemes")
+  bytes, _ := ioutil.ReadAll(resp.Body)
+  modified_string := string(bytes)
+
+//All titles array
+  var allTitles[] string
+
+for i := 0; i < 61; i++ {
+    if strings.ContainsAny(modified_string,"<p>") == false {
+      break
+    }
+
+    p_string := GetStringInBetween(modified_string,"<p>","</p>")
+
+    //Store titles into array (slices) -- Removes invalid first <p>, index should match
+    if strings.Contains(p_string,"Optimizing your large GIFs...") == false {
+      allTitles = append(allTitles, p_string)
+    }
+
+    tag := strings.Split(modified_string, "</p>")
+    modified_string = strings.Trim(modified_string,tag[0])
+  }
+
+  //Check if entered text ContainsAny any element found in array.
+  for i := 0; i < len(allTitles); i++ {
+    if strings.ContainsAny(allTitles[i], s_input) == true {
+
+			//Crawl images after check
+			return initCrawl(i)
+      break
+    }
+  }
+
+  resp.Body.Close()
+
+	//If nothing found, return 0
+	return allTitles[0]
+}
+
+//Does what it is titled.
+func GetStringInBetween(content, start, end string) (result string) {
+	if content != "" && start != "" && end != "" {
+		r := strings.Split(content, start)
+
+		if r[1] != "" {
+			r = strings.Split(r[1], end)
+		}
+
+		result = r[0]
+		return
+	} else {
+		return
 	}
 }
