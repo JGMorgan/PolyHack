@@ -102,7 +102,15 @@ func main() {
     fmt.Println("\nFound", len(foundUrls), "unique urls:\n")
 
     for url, _ := range foundUrls {
-        fmt.Println(" - " + url)
+    //    fmt.Println(" - " + url)
+        imagesrc := "http://i.imgur.com/"+url+".jpg"
+        fmt.Println(imagesrc)
+        //TODO: Store image in an array with title?
+    //    addImageStore(imagesrc, title)
+    //TODO: Find <P> tag for each div, and pull title
+
+    //TODO: Match Meme with closest keywords to title (ContainsAny?)
+
     }
 
     close(chUrls)
