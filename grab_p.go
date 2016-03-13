@@ -2,10 +2,8 @@ package main
 
 import (
   "net/http"
-//  "golang.org/x/net/html"
   "io/ioutil"
   "fmt"
-//  "bufio"
   "strings"
   )
 
@@ -24,10 +22,15 @@ import (
   	}
   }
 
+//TODO: Rename this later.
 func main() {
   resp, _ := http.Get("http://imgur.com/r/dankmemes")
   bytes, _ := ioutil.ReadAll(resp.Body)
   modified_string := string(bytes)
+
+//All titles array
+  var allTitles[] string
+
 for i := 0; i < 61; i++ {
     if strings.ContainsAny(modified_string,"<p>") == false {
       break
@@ -35,17 +38,15 @@ for i := 0; i < 61; i++ {
 
     p_string := GetStringInBetween(modified_string,"<p>","</p>")
 
-    //TODO: Store titles into array (slices)
-
-//    fmt.Println(p_string)
-
-    titles := [i]string{p_string};
+    //Store titles into array (slices) -- Removes invalid first <p>, index should match
+    if strings.Contains(p_string,"Optimizing your large GIFs...") == false {
+      allTitles = append(allTitles, p_string)
+    }
 
     tag := strings.Split(modified_string, "</p>")
     modified_string = strings.Trim(modified_string,tag[0])
   }
-//  fmt.Println("HTML:\n\n", modified_string)
 
-  fmt.Println(titles)
+  fmt.Println(allTitles)
   resp.Body.Close()
 }
