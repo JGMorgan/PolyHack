@@ -178,7 +178,7 @@ func initGetTitle(s_input string) string {
 //All titles array
   var allTitles[] string
 
-for i := 0; i < 61; i++ {
+for i := 0; i < 60; i++ {
     if strings.ContainsAny(modified_string,"<p>") == false {
       break
     }
