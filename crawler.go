@@ -5,7 +5,6 @@ import (
   "golang.org/x/net/html"
   "io/ioutil"
   "fmt"
-  "os"
   "strings"
   )
 
@@ -24,37 +23,38 @@ func getTitle(t html.Token) (ok bool, alt string) {
 
 func main() {
   //
-  foundUrls := make(map[string]bool)
-  seedUrls := os.Args[1:]
-
-  // Channels
-  chUrls := make(chan string)
-  chFinished := make(chan bool)
-
-  // Kick off the crawl process (concurrently)
-  for _, url := range seedUrls {
-      go crawl(url, chUrls, chFinished)
-  }
-
-  // Subscribe to both channels
-  for c := 0; c < len(seedUrls); {
-      select {
-      case url := <-chUrls:
-          foundUrls[url] = true
-      case <-chFinished:
-          c++
-      }
-  }
+  GetSite()
+  // foundUrls := make(map[string]bool)
+  // seedUrls := os.Args[1:]
+  //
+  // // Channels
+  // chUrls := make(chan string)
+  // chFinished := make(chan bool)
+  //
+  // // Kick off the crawl process (concurrently)
+  // for _, url := range seedUrls {
+  //     go crawl(url, chUrls, chFinished)
+  // }
+  //
+  // // Subscribe to both channels
+  // for c := 0; c < len(seedUrls); {
+  //     select {
+  //     case url := <-chUrls:
+  //         foundUrls[url] = true
+  //     case <-chFinished:
+  //         c++
+  //     }
+  // }
 
   // We're done! Print the results...
 
-  fmt.Println("\nFound", len(foundUrls), "unique urls:\n")
-
-  for url, _ := range foundUrls {
-      fmt.Println(" - " + url)
-  }
-
-  close(chUrls)
+  // fmt.Println("\nFound", len(foundUrls), "unique urls:\n")
+  //
+  // for url, _ := range foundUrls {
+  //     fmt.Println(" - " + url)
+  // }
+  //
+  // close(chUrls)
 }
 
 
@@ -86,7 +86,7 @@ func crawl ( url string, ch chan string, chFinished chan bool ) {
     case tt == html.StartTagToken:
       t := z.Token()
 
-      isAnchor := t.Data == "img"
+      isAnchor := t.Data == "div"
 
       if !isAnchor {
         continue

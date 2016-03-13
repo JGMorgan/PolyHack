@@ -1,0 +1,39 @@
+<html ng-app="dank_chat">
+<head>
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+</head>
+<body ng-controller="chatController">
+  <p>
+    Username: <input type="text" placeholder="Username" ng-model="usr">
+    <button type="button" class="btn btn-primary-outline" ng-click="setUsrName()">Submit</button>
+  </p>
+  <ul>
+    <li ng-repeat="m in messages track by $index">
+      {{m}}<img src="http://i.imgur.com/nVVrQ7q.jpg" height="300" width="300">
+    </li>
+  </ul>
+  <input type="text" placeholder="type here" ng-model="message">
+  <button type="button" class="btn btn-primary-outline" ng-click="send()">Submit</button>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.3/angular.min.js"></script>
+  <script>
+    var app = angular.module("dank_chat", []);
+    app.controller("chatController", ["$scope", function($scope) {
+      $scope.messages = [];
+      $scope.usrName = "";
+      var sock = new WebSocket("ws://localhost:4000/sock");
+	  sock.onmessage = function(m){
+        $scope.$apply(function(){
+	      $scope.messages.push(m.data);
+	    })
+      }
+      $scope.send = function(){
+        sock.send($scope.usrName+": ");//+$scope.message);
+        $scope.message = "";
+      }
+      $scope.setUsrName = function(){
+        $scope.usrName = $scope.usr;
+      }
+    }])
+  </script>
+</body>
+</html>

@@ -12,17 +12,18 @@ import (
 var connections map[*websocket.Conn]bool
 
 func main() {
-	port := flag.Int("port", 4000, "port to serve on")
-	dir := flag.String("directory", "", "directory of web files")
+	port := flag.Int("port", 4000, "")
+	dir := flag.String("indexLocation", "", "")
 
 	flag.Parse()
 	connections = make(map[*websocket.Conn]bool)
+
 	fs := http.Dir(*dir)
 	fileHandler := http.FileServer(fs)
 	http.Handle("/", fileHandler)
 
 	http.HandleFunc("/sock", wsHandler)
-	log.Printf("Running on port %d\n", *port)
+	log.Printf("PolyHack server started on port %d\n", *port)
 
 	addr := fmt.Sprintf("127.0.0.1:%d", *port)
 	err := http.ListenAndServe(addr, nil)
@@ -31,16 +32,15 @@ func main() {
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := websocket.Upgrade(w, r, nil, 1024, 1024)
-	_, ok := err.(websocket.HandshakeError);
+	_, ok := err.(websocket.HandshakeError)
 	if ok {
-		http.Error(w, "Not a websocket handshake", 400)
+		http.Error(w, "error", 400)
 		return
 	} else if err != nil {
 		log.Println(err)
 		return
 	}
 	connections[conn] = true
-	log.Println("Succesfully upgraded connection")
 
 	for {
 		_, msg, err := conn.ReadMessage()
