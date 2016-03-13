@@ -67,7 +67,7 @@ func crawl(url string, ch chan string, chFinished chan bool) {
             // Make sure the url begines in http**
       //      len := utf8.RuneCountInString(url)
             hasProto := strings.Index(url, "") == 0
-            if hasProto && (len([]rune(url)) == 7) {
+            if hasProto && (len([]rune(url)) == 7) && strings.Compare("section",url) != 0 {
                 ch <- url
             }
         }
