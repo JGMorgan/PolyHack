@@ -5,14 +5,14 @@ import (
     "golang.org/x/net/html"
     "net/http"
     "os"
-  //  "strings"
+    "strings"
 )
 
 // Helper function to pull the href attribute from a Token
 func getHref(t html.Token) (ok bool, href string) {
     // Iterate over all of the Token's attributes until we find an "href"
     for _, a := range t.Attr {
-        if a.Key == "href" {
+        if a.Key == "id" {
             href = a.Val
             ok = true
         }
@@ -53,22 +53,23 @@ func crawl(url string, ch chan string, chFinished chan bool) {
             t := z.Token()
 
             // Check if the token is an <a> tag
-            isAnchor := t.Data == "img"
+            isAnchor := t.Data == "div"
             if !isAnchor {
                 continue
             }
 
             // Extract the href value, if there is one
-            // ok, url := getHref(t)
-            // if !ok {
-            //     continue
-            // }
+            ok, url := getHref(t)
+            if !ok {
+                continue
+            }
 
-            // // Make sure the url begines in http**
-            // hasProto := strings.Index(url, "http") == 0
-            // if hasProto {
-            //     ch <- url
-            // }
+            // Make sure the url begines in http**
+      //      len := utf8.RuneCountInString(url)
+            hasProto := strings.Index(url, "") == 0
+            if hasProto && (len([]rune(url)) == 7) {
+                ch <- url
+            }
         }
     }
 }
