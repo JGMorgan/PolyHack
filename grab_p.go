@@ -22,8 +22,12 @@ import (
   	}
   }
 
-//TODO: Rename this later.
 func main() {
+  initGetTitle()
+}
+
+//Gets title using index (0-60), same position as images array
+func initGetTitle() {
   resp, _ := http.Get("http://imgur.com/r/dankmemes")
   bytes, _ := ioutil.ReadAll(resp.Body)
   modified_string := string(bytes)
@@ -47,6 +51,17 @@ for i := 0; i < 61; i++ {
     modified_string = strings.Trim(modified_string,tag[0])
   }
 
-  fmt.Println(allTitles)
+//  fmt.Println(allTitles)
+
+  //TODO: Check if entered text ContainsAny any element found in array.
+  s := "sedness"
+
+  for i := 0; i < len(allTitles); i++ {
+    if strings.ContainsAny(allTitles[i], s) == true {
+      fmt.Println(allTitles[i])
+      break
+    }
+  }
+
   resp.Body.Close()
 }
