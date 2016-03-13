@@ -5,7 +5,8 @@ import (
   "golang.org/x/net/html"
   "io/ioutil"
   "fmt"
-  "os"
+  "bufio"
+//  "os"
   "strings"
   )
 
@@ -22,45 +23,10 @@ func getTitle(t html.Token) (ok bool, alt string) {
   return
 }
 
-func main() {
-  //
-  foundUrls := make(map[string]bool)
-  seedUrls := os.Args[1:]
-
-  // Channels
-  chUrls := make(chan string)
-  chFinished := make(chan bool)
-
-  // Kick off the crawl process (concurrently)
-  for _, url := range seedUrls {
-      go crawl(url, chUrls, chFinished)
-  }
-
-  // Subscribe to both channels
-  for c := 0; c < len(seedUrls); {
-      select {
-      case url := <-chUrls:
-          foundUrls[url] = true
-      case <-chFinished:
-          c++
-      }
-  }
-
-  // We're done! Print the results...
-
-  fmt.Println("\nFound", len(foundUrls), "unique urls:\n")
-
-  for url, _ := range foundUrls {
-      fmt.Println(" - " + url)
-  }
-
-  close(chUrls)
-}
-
 
 //Crawl Function
 func crawl ( url string, ch chan string, chFinished chan bool ) {
-  resp, err := http.Get("http://imgur.com/r/dankmemes")
+  resp, err := http.Get(url)
 
   defer func() {
     //Notifies that we are finished after function
@@ -107,12 +73,67 @@ func crawl ( url string, ch chan string, chFinished chan bool ) {
   }
 }
 
+// func main() {
+//   //
+//   foundUrls := make(map[string]bool)
+//   seedUrls := os.Args[1:]
+//
+//   // Channels
+//   chUrls := make(chan string)
+//   chFinished := make(chan bool)
+//
+//   // Kick off the crawl process (concurrently)
+//   for _, url := range seedUrls {
+//       go crawl(url, chUrls, chFinished)
+//   }
+//
+//   // Subscribe to both channels
+//   for c := 0; c < len(seedUrls); {
+//       select {
+//       case url := <-chUrls:
+//           foundUrls[url] = true
+//       case <-chFinished:
+//           c++
+//       }
+//   }
+//
+//   // We're done! Print the results...
+//   fmt.Println("\nFound", len(foundUrls), "unique urls:\n")
+//
+//   for url, _ := range foundUrls {
+//
+//       fmt.Println(" - " + url)
+//   }
+//
+//   close(chUrls)
+// }
+
+
+func main() {
+GetSite()
+}
+
 //Sample
 func GetSite() {
   resp, _ := http.Get("http://imgur.com/r/dankmemes");
-  bytes, _ := ioutil.ReadAll(resp.Body)
+  //bytes, _ := ioutil.ReadAll(resp.Img)
 
-  fmt.Println("HTML:\n\n", string(bytes))
+  // for info, _ := range bytes {
+  //   if strings.Contains(string(bytes), "<img") {
+  //     fmt.Println(" - ", info)
+  //   }
+  // }
+  // fmt.Println("HTML:\n\n", string(bytes))
+  //
+  // resp.Body.Close()
 
-  resp.Body.Close()
+  body, err := ioutil.ReadAll(resp.Body)
+  if err != nil {
+      // err
+  }
+
+  r, err := bufio.NewReader(bytes.NewReader(body), resp.ContentLength)
+  if err != nil {
+      // err
+  }
 }
