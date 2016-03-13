@@ -2,8 +2,8 @@
 package main
 
 import (
-	// "time"
-	// "math/rand"
+	"time"
+	"math/rand"
 	"golang.org/x/net/html"
 	"strings"
 	"flag"
@@ -137,8 +137,6 @@ func crawl(url string, ch chan string, chFinished chan bool) {
 }
 
 func initCrawl(index int) string{
-		//Eh.. we don't really need the rand
-    //r := rand.New(rand.NewSource(time.Now().UnixNano()))
     foundUrls := make(map[string]bool)
     chUrls := make(chan string)
     chFinished := make(chan bool)
@@ -168,6 +166,8 @@ func initCrawl(index int) string{
 
 //Gets title using index (0-60), same position as images array
 func initGetTitle(s_input string) string {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
   resp, _ := http.Get("http://imgur.com/r/dankmemes")
   bytes, _ := ioutil.ReadAll(resp.Body)
   modified_string := string(bytes)
@@ -203,8 +203,8 @@ for i := 0; i < 61; i++ {
 
   resp.Body.Close()
 
-	//If nothing found, return 0
-	return allTitles[0]
+	//If nothing found, return rand
+	return allTitles[r.Int()%60]
 }
 
 //Does what it is titled.
