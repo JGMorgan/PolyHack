@@ -5,11 +5,10 @@
 <body ng-controller="chatController" width="50%" align="left">
   <p>
     Username: <input type="text" placeholder="Username" ng-model="usr">
-    <button type="button" class="btn btn-primary-outline" ng-left"setUsrName()">Submit</button>
   </p>
   <ul>
     <li ng-repeat="m in messages track by $index">
-      <img src={{m}} height="300" width="300">
+      {{mySplit(m,0)}}: <img src={{mySplit(m,1)}} height="300" width="300">
     </li>
   </ul>
   <input type="text" placeholder="type here" ng-model="message">
@@ -19,19 +18,22 @@
     var app = angular.module("dank_chat", []);
     app.controller("chatController", ["$scope", function($scope) {
       $scope.messages = [];
-      $scope.usrName = "";
+      $scope.currUsr = "";
       var sock = new WebSocket("ws://localhost:4000/sock");
-	  sock.onmessage = function(m){
+	    sock.onmessage = function(m){
         $scope.$apply(function(){
-	      $scope.messages.push(m.data);
+          var res = m.data.split(": ");
+	        $scope.messages.push(m.data);
+          $scope.currUsr=res[0] + ": ";
 	    })
       }
       $scope.send = function(){
-        sock.send($scope.usrName+": ");//+$scope.message);
+        sock.send($scope.usr+": "+$scope.message);//+$scope.message);
         $scope.message = "";
       }
-      $scope.setUsrName = function(){
-        $scope.usrName = $scope.usr;
+      $scope.mySplit = function(string, nb) {
+        $scope.array = string.split(': ');
+        return $scope.result = $scope.array[nb];
       }
     }])
   </script>

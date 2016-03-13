@@ -30,7 +30,7 @@ func main() {
 	http.HandleFunc("/sock", wsHandler)
 	log.Printf("PolyHack server started on port %d\n", *port)
 
-	addr := fmt.Sprintf("127.0.0.1:%d", *port)
+	addr := fmt.Sprintf("localhost:%d", *port)
 	err := http.ListenAndServe(addr, nil)
 	fmt.Println(err.Error())
 }
@@ -55,9 +55,12 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.Println(string(msg))
+		message := strings.Split(string(msg), ": ")
+		log.Println(message[0])
+		log.Println(message[1])
 		//DODO -- Go to InitTitle, from there we check the text and load the image.
-		imgUrl := initGetTitle(string(msg))
-		sendAll([]byte(imgUrl))
+		imgUrl := initGetTitle(message[1])
+		sendAll([]byte(message[0]+": "+imgUrl))
 	}
 }
 
@@ -157,7 +160,6 @@ func initCrawl(index int) string{
     //    fmt.Println(" - " + url)
         imagesrc := "http://i.imgur.com/"+url+".jpg"
         allImages = append(allImages, imagesrc)
-        fmt.Println(imagesrc)
 
     }
 
@@ -194,7 +196,7 @@ for i := 0; i < 61; i++ {
 
   //Check if entered text ContainsAny any element found in array.
   for i := 0; i < len(allTitles); i++ {
-    if strings.ContainsAny(allTitles[i], s_input) == true {
+    if strings.Contains(allTitles[i], s_input) == true {
 
 			//Crawl images after check
 			return initCrawl(i)
@@ -205,7 +207,7 @@ for i := 0; i < 61; i++ {
   resp.Body.Close()
 
 	//If nothing found, return rand
-	return allTitles[r.Int()%60]
+	return initCrawl(r.Int()%60)
 }
 
 //Does what it is titled.
