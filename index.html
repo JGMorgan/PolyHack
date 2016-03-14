@@ -1,18 +1,39 @@
 <html ng-app="dank_chat">
 <head>
+<style>
+#wrap{ height: 500px; position:relative; overflow:hidden}
+#content{ position: absolute; bottom:0; left:0}
+</style>
+
   <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
 </head>
 <body ng-controller="chatController" width="50%" align="left">
-  <p>
-    Username: <input type="text" placeholder="Username" ng-model="usr">
-  </p>
-  <ul>
-    <li ng-repeat="m in messages track by $index">
-      {{mySplit(m,0)}}: <img src={{mySplit(m,1)}} height="300" width="300">
-    </li>
-  </ul>
-  <input type="text" placeholder="type here" ng-model="message">
-  <button type="button" class="btn btn-primary-outline" ng-click="send()">Submit</button>
+  <table border="1" align='center' cellpadding="10">
+    <tr><td align="center">
+      <h3>Memes Messageboard</h3>
+    </td></tr>
+    <tr><td width="500px" height="500px">
+      <div id="wrap">
+      <div id="content">
+      <ul>
+        <li ng-repeat="m in messages track by $index">
+          {{mySplit(m,0)}}: <img src={{mySplit(m,1)}} height="300" width="300">
+        </li>
+      </ul>
+    </div>
+  </div>
+    </td></tr>
+    <tr><td>
+      <p>
+        Username: <input type="text" placeholder="Username" ng-model="usr">
+      </p>
+      Message: <input type="text" placeholder="type here" ng-model="message">
+      <button type="button" class="btn btn-primary-outline" ng-click="send()">Submit</button>
+    </td></tr>
+  </table>
+
+
+
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.3/angular.min.js"></script>
   <script>
     var app = angular.module("dank_chat", []);

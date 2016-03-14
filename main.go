@@ -144,7 +144,7 @@ func initCrawl(index int) string{
     chUrls := make(chan string)
     chFinished := make(chan bool)
 
-    go crawl("http://imgur.com/r/dankmemes", chUrls, chFinished)
+    go crawl("http://imgur.com/r/memes", chUrls, chFinished)
 
     // Subscribe to both channels
     for allFound := false; !allFound; {
